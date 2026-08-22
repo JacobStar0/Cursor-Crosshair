@@ -1,0 +1,37 @@
+{
+	"schemaVersion": 1,
+	"id": "cursor_crosshair",
+	"version": "${version}",
+	"name": "Cursor Crosshair",
+	"description": "Hold Alt to move Minecraft's crosshair with the mouse and interact from its screen position.",
+	"authors": [
+		"JacobStar"
+	],
+	"license": "GPL-3.0-only",
+	"icon": "assets/cursor_crosshair/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"dev.JacobStar.cursorcrosshair.CursorCrosshairClient"
+		]
+	},
+	"mixins": [
+		{
+			"config": "cursor_crosshair.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"jars": [
+		{
+			"file": "META-INF/jars/fabric-api-base.jar"
+		},
+		{
+			"file": "META-INF/jars/fabric-resource-loader-v1.jar"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.2",
+		"java": ">=25"
+	}
+}
