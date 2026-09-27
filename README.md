@@ -1,6 +1,6 @@
 # Cursor Crosshair
 
-Client-side Fabric mod for Minecraft 26.2.
+Client-side Fabric mod for Minecraft 26.3.
 
 Hold the configured key while playing to unlock the crosshair without showing the operating-system cursor. The camera stays still and Minecraft's own crosshair follows the mouse. Normal attack/use/pick actions target the block or entity under that crosshair. Left-clicking a hotbar slot selects it.
 

@@ -21,7 +21,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.resources.Identifier;
 import dev.JacobStar.cursorcrosshair.access.MouseHandlerAccess;
 import org.joml.Vector3fc;
-import org.lwjgl.glfw.GLFW;
+import org.lwjgl.sdl.SDLMouse;
 
 public final class CursorCrosshairController {
 	private static final long CAMERA_LOOK_HOLD_NANOS = 180_000_000L;
@@ -31,7 +31,7 @@ public final class CursorCrosshairController {
 	);
 	public static final KeyMapping ACTIVATE_KEY = new KeyMapping(
 			"key.cursor_crosshair.activate",
-			InputConstants.Type.KEYSYM,
+			InputConstants.Type.KEYBOARD,
 			InputConstants.KEY_LALT,
 			KEY_CATEGORY
 	);
@@ -82,13 +82,11 @@ public final class CursorCrosshairController {
 			double centerY = centeredCrosshairY(window)
 					* window.getScreenHeight() / window.getGuiScaledHeight();
 			active = true;
-			// Set the mode first because GLFW restores the previous cursor position.
-			GLFW.glfwSetInputMode(window.handle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN);
-			GLFW.glfwSetCursorPos(window.handle(), centerX, centerY);
+			releaseMouseHidden(window, centerX, centerY);
 			mouseAccess.cursorCrosshair$setPosition(centerX, centerY);
 		} else if (minecraft.mouseHandler.isMouseGrabbed()) {
 			// Recentring here would be reported as camera movement on the next frame.
-			GLFW.glfwSetInputMode(window.handle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
+			grabMouse(window, minecraft.mouseHandler.xpos(), minecraft.mouseHandler.ypos());
 			cameraLookPending = false;
 			cameraLookActive = false;
 			active = false;
@@ -151,8 +149,8 @@ public final class CursorCrosshairController {
 		MouseHandlerAccess mouseAccess = (MouseHandlerAccess)minecraft.mouseHandler;
 		mouseAccess.cursorCrosshair$resetMovement();
 		minecraft.mouseHandler.setIgnoreFirstMove();
-		GLFW.glfwSetInputMode(minecraft.getWindow().handle(), GLFW.GLFW_CURSOR,
-				GLFW.GLFW_CURSOR_DISABLED);
+		Window window = minecraft.getWindow();
+		grabMouse(window, minecraft.mouseHandler.xpos(), minecraft.mouseHandler.ypos());
 	}
 
 	private static void endCameraLook(Minecraft minecraft) {
@@ -169,10 +167,22 @@ public final class CursorCrosshairController {
 		mouseAccess.cursorCrosshair$resetMovement();
 		minecraft.mouseHandler.setIgnoreFirstMove();
 		if (restoreHiddenCursorMode) {
-			GLFW.glfwSetInputMode(window.handle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN);
+			releaseMouseHidden(window, cursorX, cursorY);
+		} else {
+			SDLMouse.SDL_WarpMouseInWindow(window.handle(), (float)cursorX, (float)cursorY);
 		}
-		GLFW.glfwSetCursorPos(window.handle(), cursorX, cursorY);
 		mouseAccess.cursorCrosshair$setPosition(cursorX, cursorY);
+	}
+
+	private static void releaseMouseHidden(Window window, double x, double y) {
+		InputConstants.releaseMouse(window, x, y);
+		SDLMouse.SDL_HideCursor();
+	}
+
+	private static void grabMouse(Window window, double x, double y) {
+		// Relative mouse mode hides the pointer and restores this visible state when released.
+		SDLMouse.SDL_ShowCursor();
+		InputConstants.grabMouse(window, x, y);
 	}
 
 	public static double centeredCrosshairX(Window window) {

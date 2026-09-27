@@ -20,10 +20,10 @@ configurations {
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	bundledResourceLoader("net.fabricmc.fabric-api:fabric-resource-loader-v1:${project.resource_loader_version}") {
+	bundledResourceLoader(fabricApi.module("fabric-resource-loader-v1", project.fabric_api_version)) {
 		transitive = false
 	}
-	bundledResourceLoader("net.fabricmc.fabric-api:fabric-api-base:${project.fabric_api_base_version}") {
+	bundledResourceLoader(fabricApi.module("fabric-api-base", project.fabric_api_version)) {
 		transitive = false
 	}
 
