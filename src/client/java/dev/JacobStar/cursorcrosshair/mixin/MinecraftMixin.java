@@ -9,14 +9,21 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(Minecraft.class)
+@Mixin(value = Minecraft.class, priority = 1100)
 public abstract class MinecraftMixin {
 	@Inject(method = "tick", at = @At("HEAD"))
 	private void cursorCrosshair$updateMode(CallbackInfo ci) {
 		CursorCrosshairController.updateMode((Minecraft)(Object)this);
 	}
 
-	@Inject(method = "pick", at = @At("TAIL"))
+	@Inject(
+			method = "pick",
+			at = @At(
+					value = "INVOKE",
+					target = "Lnet/minecraft/util/profiling/ProfilerFiller;pop()V",
+					shift = At.Shift.BEFORE
+			)
+	)
 	private void cursorCrosshair$replacePick(float partialTick, CallbackInfo ci) {
 		if (!CursorCrosshairController.isActive()) {
 			return;

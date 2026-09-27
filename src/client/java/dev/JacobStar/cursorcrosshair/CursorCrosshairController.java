@@ -169,6 +169,24 @@ public final class CursorCrosshairController {
 		return BlockHitResult.miss(missLocation, missDirection, BlockPos.containing(missLocation));
 	}
 
+	public static HitResult raycastBlockFromCursor(double range, boolean includeFluids) {
+		Minecraft minecraft = Minecraft.getInstance();
+		Entity cameraEntity = minecraft.getCameraEntity();
+		if (!active || cameraEntity == null || minecraft.level == null) {
+			return null;
+		}
+
+		Camera camera = minecraft.gameRenderer.mainCamera();
+		Vec3 start = camera.position();
+		Vec3 end = start.add(cursorDirection(minecraft, camera).scale(range));
+		return minecraft.level.clip(new ClipContext(start, end, ClipContext.Block.OUTLINE,
+				includeFluids ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE, cameraEntity));
+	}
+
+	public static Vec3 cursorDirection(Minecraft minecraft) {
+		return cursorDirection(minecraft, minecraft.gameRenderer.mainCamera());
+	}
+
 	private static Vec3 cursorDirection(Minecraft minecraft, Camera camera) {
 		Window window = minecraft.getWindow();
 		double mouseX = minecraft.mouseHandler.getScaledXPos(window);

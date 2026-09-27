@@ -3,6 +3,7 @@
 	"package": "dev.JacobStar.cursorcrosshair.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
+		"compat.AxiomGeneralGameFeaturesMixin",
 		"HudMixin",
 		"MinecraftMixin",
 		"MouseHandlerMixin",
