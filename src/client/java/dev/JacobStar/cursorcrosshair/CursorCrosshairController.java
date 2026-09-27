@@ -62,8 +62,10 @@ public final class CursorCrosshairController {
 		minecraft.mouseHandler.setIgnoreFirstMove();
 
 		if (shouldBeActive) {
-			double centerX = window.getWidth() / 2.0;
-			double centerY = window.getHeight() / 2.0;
+			double centerX = centeredCrosshairX(window)
+					* window.getScreenWidth() / window.getGuiScaledWidth();
+			double centerY = centeredCrosshairY(window)
+					* window.getScreenHeight() / window.getGuiScaledHeight();
 			active = true;
 			// Set the mode first because GLFW restores the previous cursor position.
 			GLFW.glfwSetInputMode(window.handle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN);
@@ -79,11 +81,27 @@ public final class CursorCrosshairController {
 	}
 
 	public static int crosshairX(Minecraft minecraft) {
-		return (int)Math.round(minecraft.mouseHandler.getScaledXPos(minecraft.getWindow()));
+		return (int)Math.round(crosshairXExact(minecraft));
 	}
 
 	public static int crosshairY(Minecraft minecraft) {
-		return (int)Math.round(minecraft.mouseHandler.getScaledYPos(minecraft.getWindow()));
+		return (int)Math.round(crosshairYExact(minecraft));
+	}
+
+	public static double crosshairXExact(Minecraft minecraft) {
+		return minecraft.mouseHandler.getScaledXPos(minecraft.getWindow());
+	}
+
+	public static double crosshairYExact(Minecraft minecraft) {
+		return minecraft.mouseHandler.getScaledYPos(minecraft.getWindow());
+	}
+
+	public static double centeredCrosshairX(Window window) {
+		return window.getWidth() / (double)window.getGuiScale() / 2.0;
+	}
+
+	public static double centeredCrosshairY(Window window) {
+		return window.getHeight() / (double)window.getGuiScale() / 2.0;
 	}
 
 	public static boolean handleHotbarClick(MouseButtonInfo button, int action) {

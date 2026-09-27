@@ -3,7 +3,7 @@
 	"id": "cursor_crosshair",
 	"version": "${version}",
 	"name": "Cursor Crosshair",
-	"description": "Hold Alt to move Minecraft's crosshair with the mouse and interact from its screen position.",
+	"description": "Hold Alt to move Minecraft's crosshair with the mouse and interact from its screen position. Also centers the vanilla crosshair with subpixel precision.",
 	"authors": [
 		"JacobStar"
 	],
