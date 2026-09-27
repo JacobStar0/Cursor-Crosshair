@@ -24,6 +24,8 @@ import org.joml.Vector3fc;
 import org.lwjgl.glfw.GLFW;
 
 public final class CursorCrosshairController {
+	private static final long CAMERA_LOOK_HOLD_NANOS = 180_000_000L;
+
 	public static final KeyMapping.Category KEY_CATEGORY = KeyMapping.Category.register(
 			Identifier.fromNamespaceAndPath("cursor_crosshair", "general")
 	);
@@ -35,12 +37,21 @@ public final class CursorCrosshairController {
 	);
 
 	private static boolean active;
+	private static boolean cameraLookPending;
+	private static boolean cameraLookActive;
+	private static long cameraLookPressedAt;
+	private static double heldCrosshairX;
+	private static double heldCrosshairY;
 
 	private CursorCrosshairController() {
 	}
 
 	public static boolean isActive() {
 		return active;
+	}
+
+	public static boolean isCameraLookActive() {
+		return cameraLookActive;
 	}
 
 	public static void updateMode(Minecraft minecraft) {
@@ -54,6 +65,10 @@ public final class CursorCrosshairController {
 				&& window.isFocused();
 
 		if (shouldBeActive == active) {
+			if (active && cameraLookPending
+					&& System.nanoTime() - cameraLookPressedAt >= CAMERA_LOOK_HOLD_NANOS) {
+				beginCameraLook(minecraft);
+			}
 			return;
 		}
 
@@ -74,8 +89,12 @@ public final class CursorCrosshairController {
 		} else if (minecraft.mouseHandler.isMouseGrabbed()) {
 			// Recentring here would be reported as camera movement on the next frame.
 			GLFW.glfwSetInputMode(window.handle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
+			cameraLookPending = false;
+			cameraLookActive = false;
 			active = false;
 		} else {
+			cameraLookPending = false;
+			cameraLookActive = false;
 			active = false;
 		}
 	}
@@ -89,11 +108,71 @@ public final class CursorCrosshairController {
 	}
 
 	public static double crosshairXExact(Minecraft minecraft) {
+		if (cameraLookPending || cameraLookActive) {
+			return heldCrosshairX;
+		}
 		return minecraft.mouseHandler.getScaledXPos(minecraft.getWindow());
 	}
 
 	public static double crosshairYExact(Minecraft minecraft) {
+		if (cameraLookPending || cameraLookActive) {
+			return heldCrosshairY;
+		}
 		return minecraft.mouseHandler.getScaledYPos(minecraft.getWindow());
+	}
+
+	public static boolean handleCameraLook(MouseButtonInfo button, int action) {
+		if (!active || button.button() != InputConstants.MOUSE_BUTTON_MIDDLE) {
+			return false;
+		}
+
+		if (action == InputConstants.PRESS && !cameraLookPending && !cameraLookActive) {
+			Minecraft minecraft = Minecraft.getInstance();
+			heldCrosshairX = crosshairXExact(minecraft);
+			heldCrosshairY = crosshairYExact(minecraft);
+			cameraLookPressedAt = System.nanoTime();
+			cameraLookPending = true;
+		} else if (action == InputConstants.RELEASE && cameraLookActive) {
+			endCameraLook(Minecraft.getInstance());
+		} else if (action == InputConstants.RELEASE && cameraLookPending) {
+			Minecraft minecraft = Minecraft.getInstance();
+			cameraLookPending = false;
+			restoreHeldCrosshair(minecraft, false);
+			KeyMapping.click(InputConstants.Type.MOUSE.getOrCreate(InputConstants.MOUSE_BUTTON_MIDDLE));
+		}
+
+		// Middle click belongs to camera control while free-crosshair mode is active.
+		return true;
+	}
+
+	private static void beginCameraLook(Minecraft minecraft) {
+		cameraLookPending = false;
+		cameraLookActive = true;
+		MouseHandlerAccess mouseAccess = (MouseHandlerAccess)minecraft.mouseHandler;
+		mouseAccess.cursorCrosshair$resetMovement();
+		minecraft.mouseHandler.setIgnoreFirstMove();
+		GLFW.glfwSetInputMode(minecraft.getWindow().handle(), GLFW.GLFW_CURSOR,
+				GLFW.GLFW_CURSOR_DISABLED);
+	}
+
+	private static void endCameraLook(Minecraft minecraft) {
+		cameraLookActive = false;
+		restoreHeldCrosshair(minecraft, true);
+	}
+
+	private static void restoreHeldCrosshair(Minecraft minecraft, boolean restoreHiddenCursorMode) {
+		Window window = minecraft.getWindow();
+		double cursorX = heldCrosshairX * window.getScreenWidth() / window.getGuiScaledWidth();
+		double cursorY = heldCrosshairY * window.getScreenHeight() / window.getGuiScaledHeight();
+		MouseHandlerAccess mouseAccess = (MouseHandlerAccess)minecraft.mouseHandler;
+
+		mouseAccess.cursorCrosshair$resetMovement();
+		minecraft.mouseHandler.setIgnoreFirstMove();
+		if (restoreHiddenCursorMode) {
+			GLFW.glfwSetInputMode(window.handle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN);
+		}
+		GLFW.glfwSetCursorPos(window.handle(), cursorX, cursorY);
+		mouseAccess.cursorCrosshair$setPosition(cursorX, cursorY);
 	}
 
 	public static double centeredCrosshairX(Window window) {
@@ -189,8 +268,8 @@ public final class CursorCrosshairController {
 
 	private static Vec3 cursorDirection(Minecraft minecraft, Camera camera) {
 		Window window = minecraft.getWindow();
-		double mouseX = minecraft.mouseHandler.getScaledXPos(window);
-		double mouseY = minecraft.mouseHandler.getScaledYPos(window);
+		double mouseX = crosshairXExact(minecraft);
+		double mouseY = crosshairYExact(minecraft);
 		double normalizedX = mouseX / window.getGuiScaledWidth() * 2.0 - 1.0;
 		double normalizedY = 1.0 - mouseY / window.getGuiScaledHeight() * 2.0;
 		double tangent = Math.tan(Math.toRadians(camera.getFov()) * 0.5);

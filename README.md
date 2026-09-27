@@ -1,64 +1,31 @@
-# 🎯 Cursor Crosshair
+# Cursor Crosshair
 
-A lightweight client-side Minecraft mod that lets you move the crosshair freely with your mouse without moving the camera.
+Client-side Fabric mod for Minecraft 26.2.
 
-Hold **Left Alt** to unlock the crosshair, interact with blocks and entities, or click hotbar slots directly.
+Hold the configured key while playing to unlock the crosshair without showing the operating-system cursor. The camera stays still and Minecraft's own crosshair follows the mouse. Normal attack/use/pick actions target the block or entity under that crosshair. Left-clicking a hotbar slot selects it.
 
-[![Modrinth](https://img.shields.io/badge/Modrinth-Download-00AF5C?logo=modrinth\&logoColor=white)](https://modrinth.com/mod/cursor-crosshair)
-[![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
+While free-crosshair mode is active, click the middle mouse button to use Minecraft's normal pick-block action. Hold it to look around with normal camera controls. The crosshair stays fixed at its last screen position and continues from that position when the middle button is released.
 
-## ✨ Features
+The mod also renders vanilla Minecraft's crosshair at subpixel coordinates while free-crosshair mode is inactive. Both crosshair modes use the same precise center, so switching modes does not cause a horizontal or vertical jump.
 
-* Free crosshair movement without rotating the camera
-* Interact with blocks and entities using the movable crosshair
-* Click hotbar slots directly with the mouse
-* Fully client-side
+The default key is Left Alt. It can be changed under Options > Controls > Key Binds > Cursor Crosshair.
 
-## 🎮 Controls
+## Compatibility
 
-Hold **Left Alt** to activate Cursor Crosshair.
+- Accurate Block Placement Reborn uses the movable crosshair's current target for repeated placement.
+- Axiom's Infinite Reach follows the movable crosshair and preserves Axiom's own reach handling and restrictions.
+- Axiom's Bulldozer follows the movable crosshair during continuous instant breaking.
+- Axiom's Fast Place follows the movable crosshair during continuous placement.
+- Axiom's Angel Placement uses the movable crosshair for placement and its preview.
+- Axiom's Replace Mode follows the movable crosshair during continuous replacement.
+- Cursor Crosshair does not change either mod's key bindings.
 
-Release the key to return to normal Minecraft camera controls.
+## Build
 
-The key can be changed from:
+Install JDK 25, then run:
 
-**Options → Controls → Key Binds → Cursor Crosshair**
-
-## ⚠️ Known Compatibility Issues
-
-* **Accurate Block Placement Reborn** — may not work correctly while Accurate Block Placement is enabled.
-* **Axiom** — block interaction and placement may not work correctly when using Infinite Reach.
-
-These compatibility issues may be addressed in a future update.
-
-## 🛠️ Building From Source
-
-Build the project with the included Gradle wrapper.
-
-### Windows
-
-```bash
-gradlew.bat build
+```powershell
+.\gradlew.bat build
 ```
 
-### Linux / macOS
-
-```bash
-./gradlew build
-```
-
-The compiled mod will be available in:
-
-```text
-build/libs
-```
-
-## 📜 License
-
-Cursor Crosshair is licensed under the **GNU General Public License v3.0**.
-
-See the [LICENSE](LICENSE) file for the complete license terms.
-
----
-
-Made by **JacobStar_**
+The mod jar is written to `build/libs` and does not require Fabric API.

@@ -33,7 +33,7 @@ public abstract class MouseHandlerMixin implements MouseHandlerAccess {
 
 	@Inject(method = "turnPlayer", at = @At("HEAD"), cancellable = true)
 	private void cursorCrosshair$freezeCamera(double frameTime, CallbackInfo ci) {
-		if (CursorCrosshairController.isActive()) {
+		if (CursorCrosshairController.isActive() && !CursorCrosshairController.isCameraLookActive()) {
 			this.accumulatedDX = 0.0;
 			this.accumulatedDY = 0.0;
 			ci.cancel();
@@ -42,6 +42,11 @@ public abstract class MouseHandlerMixin implements MouseHandlerAccess {
 
 	@Inject(method = "onButton", at = @At("HEAD"), cancellable = true)
 	private void cursorCrosshair$clickHotbar(long window, MouseButtonInfo button, int action, CallbackInfo ci) {
+		if (CursorCrosshairController.handleCameraLook(button, action)) {
+			ci.cancel();
+			return;
+		}
+
 		if (CursorCrosshairController.handleHotbarClick(button, action)) {
 			ci.cancel();
 		}
